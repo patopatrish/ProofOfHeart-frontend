@@ -100,9 +100,13 @@ NEXT_PUBLIC_API_URL=https://api.proofofheart.org
 # NEXT_PUBLIC_CHAIN_ID=1
 NEXT_PUBLIC_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
+# Optional off-chain webhook for creator email opt-ins
+NEXT_PUBLIC_CREATOR_EMAIL_WEBHOOK_URL=
 ```
 
 ## 🤝 Contributing!
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 We welcome contributions! To maintain a clean and consistent codebase, please follow these guidelines:
 
@@ -145,7 +149,7 @@ docker run -p 3000:3000 proofofheart-frontend
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE) (to be added).
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 

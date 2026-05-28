@@ -1,13 +1,13 @@
 "use client";
 "use client";
-import { explorerTxUrl } from "../utils/explorer";
 
 import { useState } from "react";
-import { Campaign, basisPointsToPercentage, stroopsToXlm } from "../types";
 import { withdrawFunds } from "../lib/contractClient";
+import { Campaign, basisPointsToPercentage, stroopsToXlm } from "../types";
 import { useToast } from "./ToastProvider";
-import { parseContractError } from "../utils/contractErrors";
 import { isSameAddress } from "../lib/stellar";
+import { parseContractError } from "../utils/contractErrors";
+import { explorerTxUrl } from "../utils/explorer";
 
 interface WithdrawFundsProps {
   campaign: Campaign;
@@ -85,6 +85,7 @@ export default function WithdrawFunds({
             className="w-5 h-5 text-green-600 dark:text-green-400"
             fill="currentColor"
             viewBox="0 0 20 20"
+            aria-hidden="true"
           >
             <path
               fillRule="evenodd"

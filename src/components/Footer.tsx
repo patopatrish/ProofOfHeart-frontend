@@ -1,8 +1,8 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 
 export default function Footer() {
   const t = useTranslations("Footer");
@@ -35,9 +35,9 @@ export default function Footer() {
 
           <div className="flex flex-wrap gap-8">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                 {t("productHeading")}
-              </h3>
+              </h2>
               <ul className="mt-3 space-y-2 text-sm">
                 {productLinks.map((link) => (
                   <li key={link.href}>
@@ -53,9 +53,9 @@ export default function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
+              <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">
                 {t("linksHeading")}
-              </h3>
+              </h2>
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
                   <a

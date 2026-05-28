@@ -1,9 +1,9 @@
 "use client";
 
+import { Heart, Shield, Globe, Code, ArrowRight, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 import { useWallet } from "@/components/WalletContext";
-import { Heart, Shield, Globe, Code, ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/routing";
 
 export default function HomeClient() {
   const t = useTranslations("Home");
@@ -16,9 +16,9 @@ export default function HomeClient() {
       <div className="absolute top-0 -right-4 w-72 h-72 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 motion-safe:animate-blob animation-delay-2000" />
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 motion-safe:animate-blob animation-delay-4000" />
 
-      <main className="relative container mx-auto px-4 py-24 sm:px-6 lg:px-8">
+      <div className="relative container mx-auto px-4 py-24 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <div className="text-center max-w-5xl mx-auto">
+        <div className="text-center max-w-5xl mx-auto mb-16 sm:mb-24">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold mb-8 motion-safe:animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Heart size={16} fill="currentColor" />
             <span>Community Driven Governance</span>
@@ -32,7 +32,7 @@ export default function HomeClient() {
             {t("heroSubtitle")}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center motion-safe:animate-in fade-in slide-in-from-bottom-10 duration-1000">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center motion-safe:animate-in fade-in slide-in-from-bottom-10 duration-1000">
             <Link
               href="/explore"
               className="group flex items-center gap-2 px-10 py-4 bg-linear-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-2xl transition-all shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:motion-safe:-translate-y-1 active:translate-y-0"
@@ -40,28 +40,26 @@ export default function HomeClient() {
               {t("exploreCauses")}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            {isWalletConnected ? (
-              <Link
-                href="/causes/new"
-                className="px-10 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md hover:motion-safe:-translate-y-0.5 active:translate-y-0"
-              >
-                {t("startCampaign")}
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={connectWallet}
-                disabled={isLoading}
-                className="px-10 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md hover:motion-safe:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Connecting..." : t("startCampaign")}
-              </button>
-            )}
+            <Link
+              href="/causes/new"
+              onClick={(e) => {
+                if (!isWalletConnected) {
+                  e.preventDefault();
+                  connectWallet();
+                }
+              }}
+              className="group flex items-center gap-2 px-10 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md hover:motion-safe:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isLoading && !isWalletConnected ? "Connecting..." : t("startCampaign")}
+              <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
+            </Link>
           </div>
         </div>
 
         {/* Features Section */}
-        <div className="mt-32 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <section aria-labelledby="features-heading" className="mt-32">
+          <h2 id="features-heading" className="sr-only">Key features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <FeatureCard
             icon={<Globe className="text-blue-500" />}
             title="Community First"
@@ -86,8 +84,9 @@ export default function HomeClient() {
             description="Smart contracts enforce the rules, removing the need for intermediaries."
             delay="delay-400"
           />
-        </div>
-      </main>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

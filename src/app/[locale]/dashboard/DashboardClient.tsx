@@ -1,20 +1,19 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import { explorerTxUrl } from "@/utils/explorer";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import MyContributionsSection from "@/components/MyContributionsSection";
+import { Spinner } from "@/components/Skeleton";
 import { useWallet } from "@/components/WalletContext";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { getStellarBalance } from "@/lib/getStellarBalance";
-import { DashboardSkeleton, Spinner } from "@/components/Skeleton";
-import MyContributionsSection from "@/components/MyContributionsSection";
 import { isSameAddress } from "@/lib/stellar";
+import { explorerTxUrl } from "@/utils/explorer";
 
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
   const { publicKey, isWalletConnected } = useWallet();
-  const [loading, setLoading] = useState(true);
   const { campaigns } = useCampaigns();
   const [balance, setBalance] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -35,9 +34,8 @@ export default function DashboardPage() {
   }, [publicKey]);
 
   useEffect(() => {
-    setLoading(false);
     if (publicKey) fetchBalance();
-  }, [isWalletConnected, publicKey, fetchBalance]);
+  }, [publicKey, fetchBalance]);
 
   const mockVotes = useMemo(
     () => [
@@ -72,14 +70,12 @@ export default function DashboardPage() {
     [campaigns, publicKey],
   );
 
-  if (loading) return <DashboardSkeleton />;
-
   if (!isWalletConnected || !publicKey) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-        <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
           {t("noWalletHeading")}
-        </h2>
+        </h1>
         <Link
           href="/"
           className="px-6 py-3 min-h-[44px] inline-flex items-center bg-blue-600 text-white rounded-full font-medium hover:bg-blue-700 transition"

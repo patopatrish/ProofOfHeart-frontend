@@ -1,13 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { Campaign, Vote, CATEGORY_LABELS, stroopsToXlm } from '../types';
 import VotingComponent from './VotingComponent';
 import CampaignStatusBadge from './CampaignStatusBadge';
-import FundingProgressBar from './FundingProgressBar';
-import DeadlineCountdown from './DeadlineCountdown';
 import CancelCampaignModal from './cancelCampaignModal';
-import { formatAddress } from '@/lib/formatAddress';
+import DeadlineCountdown from './DeadlineCountdown';
+import FundingProgressBar from './FundingProgressBar';
+import VotingComponent from './VotingComponent';
 
 interface CauseCardProps {
   campaign: Campaign;
@@ -15,6 +16,7 @@ interface CauseCardProps {
   onVote: (campaignId: number, voteType: 'upvote' | 'downvote') => Promise<void>;
   onCancel: (campaignId: number) => Promise<void>;
   onClaimRefund: (campaignId: number) => Promise<void>;
+  onTagClick?: (tag: string) => void;
   userVote?: Vote;
 }
 
@@ -39,6 +41,7 @@ export default function CauseCard({
   onVote,
   onCancel,
   onClaimRefund,
+  onTagClick,
   userVote,
 }: CauseCardProps) {
   const [isVoting, setIsVoting] = useState(false);
@@ -103,6 +106,24 @@ export default function CauseCard({
   return (
     <div className="flex flex-col bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
 
+      {/* ── Cover image ── */}
+      <div className="relative w-full aspect-video bg-zinc-100 dark:bg-zinc-700">
+        {campaign.cover_image_url ? (
+          <Image
+            src={campaign.cover_image_url}
+            alt={campaign.title}
+            fill
+            unoptimized
+            loading="lazy"
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-4xl select-none">
+            {categoryIcon || '💡'}
+          </div>
+        )}
+      </div>
+
       {/* ── Card body ── */}
       <div className="p-5 flex-1 space-y-3">
 
@@ -141,7 +162,7 @@ export default function CauseCard({
           </p>
         </div>
 
-        {/* Extended funding bar (BigInt path) */}
+        {/* Funding progress */}
         {campaign.funding_goal > BigInt(0) && (
           <FundingProgressBar
             amountRaised={campaign.amount_raised}

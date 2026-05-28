@@ -44,6 +44,8 @@ export interface Campaign {
   category: Category;
   has_revenue_sharing: boolean;
   revenue_share_percentage: number; // basis points (e.g. 300 = 3%)
+  tags?: string[];
+  cover_image_url?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -124,6 +126,55 @@ export interface Vote {
   voteType: "upvote" | "downvote";
   timestamp: Date;
   transactionHash: string;
+}
+
+// ---------------------------------------------------------------------------
+// Campaign Update types — for off-chain signed updates
+// ---------------------------------------------------------------------------
+
+/**
+ * Represents a campaign update posted by the creator.
+ * Updates are stored off-chain and signed by the creator's wallet.
+ */
+export interface CampaignUpdate {
+  id: string;
+  campaignId: number;
+  content: string;
+  authorAddress: string;
+  timestamp: number; // Unix timestamp in seconds
+  signature: string;
+}
+
+/**
+ * Payload to be signed when creating a new update.
+ * This is what gets signed by the wallet, not the entire update.
+ */
+export interface UpdatePayload {
+  campaignId: number;
+  content: string;
+  timestamp: number;
+}
+
+// ---------------------------------------------------------------------------
+// Comment & Q&A types
+// ---------------------------------------------------------------------------
+
+export interface Comment {
+  id: string;
+  campaignId: number;
+  content: string;
+  authorAddress: string;
+  timestamp: number; // Unix timestamp in seconds
+  parentId: string | null;
+  signature: string;
+  isPinned: boolean;
+  isReported: boolean;
+}
+
+export interface CommentPayload {
+  campaignId: number;
+  content: string;
+  timestamp: number;
 }
 
 // VotingResult is deprecated; use local state shape instead if needed
