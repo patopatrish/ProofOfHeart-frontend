@@ -98,4 +98,16 @@ describe("WithdrawFunds", () => {
     expect(screen.getByRole("button", { name: "Withdraw Funds" })).toBeDisabled();
     expect(screen.getByText("Funds have already been withdrawn")).toBeInTheDocument();
   });
+
+  it("defaults to 300 bps platform fee when prop is omitted", () => {
+    render(
+      <WithdrawFunds
+        campaign={makeCampaign({ amount_raised: BigInt(100_000_000) })}
+        userWalletAddress={CREATOR}
+      />,
+    );
+
+    expect(screen.getByText("Platform fee (3%)")).toBeInTheDocument();
+    expect(screen.getByText("-0.3 XLM")).toBeInTheDocument();
+  });
 });
