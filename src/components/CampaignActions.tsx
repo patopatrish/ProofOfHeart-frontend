@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Campaign, basisPointsToPercentage, stroopsToXlm, xlmToStroops } from "../types";
-import { Spinner } from "./Skeleton";
+import AsyncButtonContent from "./AsyncButtonContent";
 import { useToast } from "./ToastProvider";
 import { useWallet } from "./WalletContext";
 import WithdrawFunds from "./WithdrawFunds";
@@ -19,6 +19,7 @@ import {
 } from "../lib/contractClient";
 import { isSameAddress } from "../lib/stellar";
 import { parseContractError } from "../utils/contractErrors";
+import { getAsyncActionErrorMessage, withActionTimeout } from "../utils/asyncAction";
 
 interface CampaignActionsProps {
   campaign: Campaign;
@@ -43,11 +44,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
   const handleAction = async (action: () => Promise<string>, successMsg: string) => {
     setIsPending(true);
     try {
-      await action();
+      await withActionTimeout(action());
       showSuccess(successMsg);
       if (onActionSuccess) onActionSuccess();
     } catch (err) {
-      showError(parseContractError(err));
+      showError(getAsyncActionErrorMessage(err, parseContractError));
     } finally {
       setIsPending(false);
     }
@@ -106,12 +107,12 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
     }
     setIsPending(true);
     try {
-      await contribute(campaign.id, publicKey, xlmToStroops(parsedAmount));
+      await withActionTimeout(contribute(campaign.id, publicKey, xlmToStroops(parsedAmount)));
       setContributionAmount("");
       showSuccess("Contribution submitted successfully.");
       onActionSuccess?.();
     } catch (err) {
-      showError(parseContractError(err));
+      showError(getAsyncActionErrorMessage(err, parseContractError));
     } finally {
       setIsPending(false);
     }
@@ -153,8 +154,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
                 disabled={isPending || !!contributionDisabledReason}
                 className="rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-zinc-400 flex items-center gap-2"
               >
-                {isPending && <Spinner />}
-                {isPending ? "Processing…" : "Contribute"}
+                <AsyncButtonContent
+                  isPending={isPending}
+                  idleLabel="Contribute"
+                  pendingLabel="Processing..."
+                />
               </button>
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -190,7 +194,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
                 }
                 className="w-full py-3 min-h-[44px] bg-red-600 hover:bg-red-700 disabled:bg-zinc-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                {isPending && <Spinner />} Cancel Campaign
+                <AsyncButtonContent
+                  isPending={isPending}
+                  idleLabel="Cancel Campaign"
+                  pendingLabel="Cancelling..."
+                />
               </button>
               {campaign.has_revenue_sharing &&
                 (showRevenueInput ? (
@@ -215,7 +223,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
                         disabled={isPending || !revenueAmount}
                         className="flex-1 py-3 min-h-[44px] bg-purple-600 hover:bg-purple-700 disabled:bg-zinc-400 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
-                        {isPending && <Spinner />} Confirm
+                        <AsyncButtonContent
+                          isPending={isPending}
+                          idleLabel="Confirm"
+                          pendingLabel="Processing..."
+                        />
                       </button>
                       <button
                         onClick={() => {
@@ -250,7 +262,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
             disabled={isPending}
             className="w-full py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            {isPending && <Spinner />} Verify Campaign
+            <AsyncButtonContent
+              isPending={isPending}
+              idleLabel="Verify Campaign"
+              pendingLabel="Verifying..."
+            />
           </button>
         </div>
       )}
@@ -270,7 +286,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
               title={campaign.is_active && !isExpired ? "Cannot refund while active" : ""}
               className="w-full py-3 min-h-[44px] bg-amber-600 hover:bg-amber-700 disabled:bg-zinc-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              {isPending && <Spinner />} Claim Refund
+              <AsyncButtonContent
+                isPending={isPending}
+                idleLabel="Claim Refund"
+                pendingLabel="Claiming refund..."
+              />
             </button>
             {campaign.has_revenue_sharing && (
               <button
@@ -280,7 +300,11 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
                 disabled={isPending}
                 className="w-full py-3 min-h-[44px] bg-indigo-600 hover:bg-indigo-700 disabled:bg-zinc-400 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                {isPending && <Spinner />} Claim Revenue
+                <AsyncButtonContent
+                  isPending={isPending}
+                  idleLabel="Claim Revenue"
+                  pendingLabel="Claiming revenue..."
+                />
               </button>
             )}
           </div>

@@ -172,18 +172,17 @@ export default function AdminDashboard() {
     if (!campaignToReject) return;
     setCancellingId(campaignToReject.id);
     try {
-      const txHash = await cancelCampaign(id);
+      const txHash = await cancelCampaign(campaignToReject.id);
       if (publicKey) {
         appendAdminAuditLog({
           adminAddress: publicKey,
           action: "reject_campaign",
-          campaignId: id,
+          campaignId: campaignToReject.id,
           txHash,
-          details: `Rejected campaign #${id}`,
+          details: `Rejected campaign #${campaignToReject.id}`,
         });
         refreshAuditLog(publicKey);
       }
-      await cancelCampaign(campaignToReject.id);
       showSuccess("Campaign rejected and cancelled.");
       setOptimisticRemovedIds((prev) => [...prev, campaignToReject.id]);
       setIsRejectModalOpen(false);

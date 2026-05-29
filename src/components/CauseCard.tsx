@@ -3,12 +3,16 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { Campaign, Vote, CATEGORY_LABELS, stroopsToXlm } from '../types';
-import VotingComponent from './VotingComponent';
+import { formatAddress } from '@/lib/formatAddress';
+import AsyncButtonContent from './AsyncButtonContent';
 import CampaignStatusBadge from './CampaignStatusBadge';
 import CancelCampaignModal from './cancelCampaignModal';
 import DeadlineCountdown from './DeadlineCountdown';
 import FundingProgressBar from './FundingProgressBar';
 import VotingComponent from './VotingComponent';
+import { useToast } from './ToastProvider';
+import { getAsyncActionErrorMessage, withActionTimeout } from '@/utils/asyncAction';
+import { parseContractError } from '@/utils/contractErrors';
 
 interface CauseCardProps {
   campaign: Campaign;
@@ -48,6 +52,7 @@ export default function CauseCard({
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isClaimingRefund, setIsClaimingRefund] = useState(false);
+  const { showError } = useToast();
 
   const progressPct =
     campaign.funding_goal > BigInt(0)
@@ -78,7 +83,9 @@ export default function CauseCard({
   const handleVote = async (_campaignId: number, voteType: 'upvote' | 'downvote') => {
     setIsVoting(true);
     try {
-      await onVote(campaign.id, voteType);
+      await withActionTimeout(onVote(campaign.id, voteType));
+    } catch (error) {
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     } finally {
       setIsVoting(false);
     }
@@ -87,8 +94,10 @@ export default function CauseCard({
   const handleCancelConfirm = async () => {
     setIsCancelling(true);
     try {
-      await onCancel(campaign.id);
+      await withActionTimeout(onCancel(campaign.id));
       setIsCancelModalOpen(false);
+    } catch (error) {
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     } finally {
       setIsCancelling(false);
     }
@@ -97,14 +106,16 @@ export default function CauseCard({
   const handleClaimRefund = async () => {
     setIsClaimingRefund(true);
     try {
-      await onClaimRefund(campaign.id);
+      await withActionTimeout(onClaimRefund(campaign.id));
+    } catch (error) {
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     } finally {
       setIsClaimingRefund(false);
     }
   };
 
   return (
-    <div className="flex flex-col bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 overflow-hidden hover:shadow-md transition-shadow duration-200">
+    <div className="flex h-full min-h-[640px] flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-transform duration-200 hover:motion-safe:-translate-y-0.5 hover:border-blue-200 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-blue-800">
 
       {/* ── Cover image ── */}
       <div className="relative w-full aspect-video bg-zinc-100 dark:bg-zinc-700">
@@ -218,14 +229,12 @@ export default function CauseCard({
             disabled={isClaimingRefund}
             className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
-            {isClaimingRefund ? (
-              <>
-                <span className="inline-block motion-safe:animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white" />
-                Claiming Refund…
-              </>
-            ) : (
-              '↩ Claim Refund'
-            )}
+            <AsyncButtonContent
+              isPending={isClaimingRefund}
+              idleLabel="↩ Claim Refund"
+              pendingLabel="Claiming refund..."
+              spinnerClassName="h-3.5 w-3.5"
+            />
           </button>
         )}
 
