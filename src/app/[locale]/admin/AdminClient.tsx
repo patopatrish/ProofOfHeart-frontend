@@ -388,6 +388,12 @@ export default function AdminDashboard() {
                 {adminAddress}
               </span>
             </div>
+            <Link
+              href="/admin/observability"
+              className="rounded-2xl border border-zinc-200 bg-white px-5 py-3 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
+            >
+              RPC &amp; transaction metrics
+            </Link>
           </div>
         </div>
       </section>

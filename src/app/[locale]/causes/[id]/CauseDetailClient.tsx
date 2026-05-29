@@ -17,11 +17,10 @@ import { useToast } from '@/components/ToastProvider';
 import VotingComponent from '@/components/VotingComponent';
 import { useWallet } from '@/components/WalletContext';
 import { useCampaign } from '@/hooks/useCampaign';
+import { useLiveVoteTallies } from '@/hooks/useLiveVoteTallies';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
 import {
   voteOnCampaign,
-  getApproveVotes,
-  getRejectVotes,
   hasVoted,
   getMinVotesQuorum,
   getApprovalThresholdBps,
@@ -50,7 +49,10 @@ export default function CauseDetailClient({ id }: { id: string }) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
   const [isVoting, setIsVoting] = useState(false);
-  const [voteCounts, setVoteCounts] = useState({ upvotes: 0, downvotes: 0, totalVotes: 0 });
+  const { voteCounts, applyOptimisticVote, reconcile: reconcileVoteTallies } = useLiveVoteTallies({
+    campaignId: Number(id),
+    enabled: Number(id) > 0,
+  });
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { showError, showSuccess, showWarning } = useToast();
@@ -71,18 +73,15 @@ export default function CauseDetailClient({ id }: { id: string }) {
 
   useEffect(() => { if (fetchedCampaign) setCampaign(fetchedCampaign); }, [fetchedCampaign]);
 
-  // Load vote counts + quorum config whenever campaign changes
+  // Load quorum config whenever campaign is available
   useEffect(() => {
     if (!campaign) return;
     const load = async () => {
       try {
-        const [approves, rejects, quorum, threshold] = await Promise.all([
-          getApproveVotes(campaign.id),
-          getRejectVotes(campaign.id),
+        const [quorum, threshold] = await Promise.all([
           getMinVotesQuorum(),
           getApprovalThresholdBps(),
         ]);
-        setVoteCounts({ upvotes: approves, downvotes: rejects, totalVotes: approves + rejects });
         setMinVotesQuorum(quorum);
         setApprovalThresholdBps(threshold);
       } catch {
@@ -134,12 +133,9 @@ export default function CauseDetailClient({ id }: { id: string }) {
     try {
       const transactionHash = await withActionTimeout(voteOnCampaign(campaignId, userWalletAddress, voteType === 'upvote'));
       setUserVote({ causeId: String(campaignId), voter: userWalletAddress, voteType, timestamp: new Date(), transactionHash });
-      setVoteCounts((prev) => ({
-        upvotes: voteType === 'upvote' ? prev.upvotes + 1 : prev.upvotes,
-        downvotes: voteType === 'downvote' ? prev.downvotes + 1 : prev.downvotes,
-        totalVotes: prev.totalVotes + 1,
-      }));
+      applyOptimisticVote(voteType);
       showSuccess('Your vote has been cast successfully.');
+      void reconcileVoteTallies();
       refetch();
     } catch (error) {
       showError(getAsyncActionErrorMessage(error, parseContractError));
