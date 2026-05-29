@@ -35,4 +35,15 @@ describe("usePlatformFee", () => {
     expect(result.current.platformFeeBps).toBe(250);
     expect(result.current.isFallback).toBe(false);
   });
+
+  it("falls back to 300 bps when getPlatformFee throws", async () => {
+    mockGetPlatformFee.mockRejectedValue(new Error("getter unavailable"));
+
+    const { result } = renderHook(() => usePlatformFee(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.platformFeeBps).toBe(DEFAULT_PLATFORM_FEE_BPS);
+    expect(result.current.isFallback).toBe(true);
+  });
 });
