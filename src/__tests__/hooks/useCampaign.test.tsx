@@ -78,4 +78,16 @@ describe("useCampaign", () => {
     expect(result.current.error).toBe("rpc unavailable");
     expect(result.current.notFound).toBe(false);
   });
+
+  it("returns notFound for unknown campaign ids", async () => {
+    mockGetCampaign.mockResolvedValue(null);
+
+    const { result } = renderHook(() => useCampaign(999), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.campaign).toBeNull();
+    expect(result.current.notFound).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
 });
