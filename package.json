@@ -20,6 +20,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "analyze": "ANALYZE=true next build --webpack",
+    "bundle-size": "node scripts/bundle-size-check.mjs",
+    "bundle-size:update": "node scripts/bundle-size-check.mjs --update-baseline",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "changeset publish"
