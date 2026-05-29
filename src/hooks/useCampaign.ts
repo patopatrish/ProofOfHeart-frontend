@@ -18,6 +18,7 @@ export function useCampaign(id: number): UseCampaignResult {
     queryKey: ['campaign', id],
     queryFn: () => getCampaign(id),
     enabled: !!id,
+    refetchOnWindowFocus: true,
   });
 
   return {

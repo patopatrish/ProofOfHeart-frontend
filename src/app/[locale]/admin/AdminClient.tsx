@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ToastProvider";
 import { useWallet } from "@/components/WalletContext";
 import { useCampaigns } from "@/hooks/useCampaigns";
@@ -45,6 +46,7 @@ import { Campaign } from "@/types";
 export default function AdminDashboard() {
   const { campaigns, isLoading, refetch, isRefreshing } = useCampaigns();
   const { publicKey, isWalletConnected, connectWallet, isLoading: isWalletLoading } = useWallet();
+  const queryClient = useQueryClient();
   const { showSuccess, showError, showWarning } = useToast();
   const t = useTranslations("Admin");
 
@@ -156,6 +158,7 @@ export default function AdminDashboard() {
       showSuccess("Campaign approved successfully!");
       setOptimisticRemovedIds((prev) => [...prev, id]);
       refetch();
+      queryClient.invalidateQueries({ queryKey: ['campaign', id] });
     } catch (err) {
       showError(parseContractError(err));
     } finally {
@@ -172,22 +175,22 @@ export default function AdminDashboard() {
     if (!campaignToReject) return;
     setCancellingId(campaignToReject.id);
     try {
-      const txHash = await cancelCampaign(id);
+      const txHash = await cancelCampaign(campaignToReject.id);
       if (publicKey) {
         appendAdminAuditLog({
           adminAddress: publicKey,
           action: "reject_campaign",
-          campaignId: id,
+          campaignId: campaignToReject.id,
           txHash,
-          details: `Rejected campaign #${id}`,
+          details: `Rejected campaign #${campaignToReject.id}`,
         });
         refreshAuditLog(publicKey);
       }
-      await cancelCampaign(campaignToReject.id);
       showSuccess("Campaign rejected and cancelled.");
       setOptimisticRemovedIds((prev) => [...prev, campaignToReject.id]);
       setIsRejectModalOpen(false);
       refetch();
+      queryClient.invalidateQueries({ queryKey: ['campaign', campaignToReject.id] });
     } catch (err) {
       showError(parseContractError(err));
     } finally {
