@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { contribute } from "../lib/contractClient";
-import { Campaign, xlmToStroops, formatStroopsAsXlm, calculateFundingPercentage } from "../types";
+import { Campaign, xlmToStroops, formatStroopsAsXlm, calculateFundingPercentage, basisPointsToPercentage } from "../types";
 import { useToast } from "./ToastProvider";
 import { useWallet } from "./WalletContext";
+import { usePlatformFee } from "../hooks/usePlatformFee";
 import { parseContractError } from "../utils/contractErrors";
 import { type TransactionLifecyclePhase } from "../lib/contractClient";
 import { validateContributorNotCreator } from "../utils/validators";
@@ -29,6 +30,7 @@ type Step = "input" | "pending" | "confirmed";
 export default function DonationModal({ campaign, onClose, onSuccess }: DonationModalProps) {
   const { publicKey } = useWallet();
   const { showError } = useToast();
+  const { platformFeeBps } = usePlatformFee();
 
   const [amount, setAmount] = useState("");
   const [step, setStep] = useState<Step>("input");
@@ -305,6 +307,11 @@ export default function DonationModal({ campaign, onClose, onSuccess }: Donation
                   )}
                 </div>
               )}
+
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                A platform fee of {basisPointsToPercentage(platformFeeBps)} is deducted from funds
+                when withdrawn by the creator. Your full donation goes toward the campaign total.
+              </p>
 
               <button
                 onClick={handleDonate}
