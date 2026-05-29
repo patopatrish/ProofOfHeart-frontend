@@ -93,6 +93,12 @@ export default function VotingComponent({
 
   // Approval rate in basis points
   const currentApprovalBps = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 10000) : 0;
+  const approvalThresholdPct =
+    approvalThresholdBps !== undefined ? approvalThresholdBps / 100 : null;
+  const approvalProgressPct =
+    approvalThresholdBps && approvalThresholdBps > 0
+      ? Math.min(100, Math.round((currentApprovalBps / approvalThresholdBps) * 100))
+      : null;
   const approvePercent = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 50;
   const rejectPercent = 100 - approvePercent;
 
@@ -103,6 +109,15 @@ export default function VotingComponent({
     approvalThresholdBps !== undefined &&
     totalVotes >= minVotesQuorum &&
     currentApprovalBps >= approvalThresholdBps;
+
+  const verificationStatus =
+    minVotesQuorum !== undefined && approvalThresholdBps !== undefined
+      ? totalVotes < minVotesQuorum
+        ? `Need ${minVotesQuorum - totalVotes} more vote${minVotesQuorum - totalVotes === 1 ? '' : 's'} to reach quorum.`
+        : currentApprovalBps < approvalThresholdBps
+          ? `Need ${Math.ceil((approvalThresholdBps - currentApprovalBps) / 100)} more approval point${Math.ceil((approvalThresholdBps - currentApprovalBps) / 100) === 1 ? '' : 's'} to reach the approval threshold.`
+          : 'Quorum and approval threshold reached. Anyone can finalize verification.'
+      : null;
 
   return (
     <div className="flex flex-col items-center gap-4 p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-700">
@@ -179,9 +194,7 @@ export default function VotingComponent({
         <div className="w-full space-y-1">
           <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
             <span>Quorum progress</span>
-            <span>
-              {totalVotes} of {minVotesQuorum} votes needed
-            </span>
+            <span>{totalVotes} of {minVotesQuorum} votes</span>
           </div>
           <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5">
             <div
@@ -190,6 +203,29 @@ export default function VotingComponent({
             />
           </div>
         </div>
+      )}
+
+      {approvalThresholdPct !== null && (
+        <div className="w-full space-y-1">
+          <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+            <span>Approval threshold</span>
+            <span>
+              {currentApprovalBps / 100}% of {approvalThresholdPct}%
+            </span>
+          </div>
+          <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5">
+            <div
+              className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+              style={{ width: `${approvalProgressPct ?? 0}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {verificationStatus && (
+        <p className="w-full rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-3 py-2 text-center text-xs text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-300">
+          {verificationStatus}
+        </p>
       )}
 
       {/* Status messages */}

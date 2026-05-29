@@ -21,6 +21,9 @@ const CONTRACT_ADDRESS =
 const NETWORK_PASSPHRASE =
   process.env.NEXT_PUBLIC_NETWORK_PASSPHRASE ?? "Test SDF Network ; September 2015";
 
+const MAX_DYNAMIC_FEE_PER_OPERATION = 5_000;
+const FEE_RETRY_MULTIPLIER = 2;
+
 // ---------------------------------------------------------------------------
 // Soroban RPC server (lazily initialised)
 // ---------------------------------------------------------------------------
@@ -34,6 +37,66 @@ function getServer(): StellarSdk.rpc.Server {
   return _server;
 }
 
+async function getRecommendedFeePerOperation(): Promise<number> {
+  if (USE_MOCKS) return Number(StellarSdk.BASE_FEE);
+
+  try {
+    const response = await fetch(SOROBAN_RPC_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "get-fee-stats",
+        method: "getFeeStats",
+      }),
+    });
+
+    if (!response.ok) {
+      return Number(StellarSdk.BASE_FEE);
+    }
+
+    const payload = (await response.json()) as {
+      result?: {
+        sorobanInclusionFee?: { p95?: string; mode?: string; max?: string };
+      };
+    };
+
+    const feeStats = payload.result?.sorobanInclusionFee;
+    const rawFee = Number(feeStats?.p95 ?? feeStats?.mode ?? feeStats?.max ?? StellarSdk.BASE_FEE);
+
+    if (!Number.isFinite(rawFee) || rawFee <= 0) {
+      return Number(StellarSdk.BASE_FEE);
+    }
+
+    if (rawFee > MAX_DYNAMIC_FEE_PER_OPERATION) {
+      throw new Error(
+        `Network fees are currently above the app cap of ${MAX_DYNAMIC_FEE_PER_OPERATION} stroops per operation. Try again later.`,
+      );
+    }
+
+    return Math.max(Number(StellarSdk.BASE_FEE), rawFee);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Network fees are currently above the app cap")) {
+      throw error;
+    }
+    return Number(StellarSdk.BASE_FEE);
+  }
+}
+
+function shouldRetryForFee(error: unknown): boolean {
+  const message =
+    error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  return /tx_insufficient_fee|insufficient_fee|tx_too_late|fee too low|minimum fee|min fee/i.test(message);
+}
+
+function stringifyError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "Transaction submission failed.";
+}
+
 // ---------------------------------------------------------------------------
 // Helpers — transaction building & submission
 // ---------------------------------------------------------------------------
@@ -41,57 +104,88 @@ function getServer(): StellarSdk.rpc.Server {
 async function buildAndSubmitTransaction(
   sourcePublicKey: string,
   contractOp: StellarSdk.xdr.Operation,
+  feePerOperation?: number,
 ): Promise<StellarSdk.rpc.Api.GetSuccessfulTransactionResponse> {
   const server = getServer();
   const sourceAccount = await server.getAccount(sourcePublicKey);
+  const effectiveFeePerOperation =
+    feePerOperation ?? (await getRecommendedFeePerOperation());
 
-  const txBuilder = new StellarSdk.TransactionBuilder(sourceAccount, {
-    fee: StellarSdk.BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  });
-  txBuilder.addOperation(contractOp);
-  txBuilder.setTimeout(300);
+  const submitOnce = async (nextFeePerOperation: number) => {
+    const txBuilder = new StellarSdk.TransactionBuilder(sourceAccount, {
+      fee: `${nextFeePerOperation}`,
+      networkPassphrase: NETWORK_PASSPHRASE,
+    });
+    txBuilder.addOperation(contractOp);
+    txBuilder.setTimeout(300);
 
-  const builtTx = txBuilder.build();
-  const simulated = await server.simulateTransaction(builtTx);
+    const builtTx = txBuilder.build();
+    const simulated = await server.simulateTransaction(builtTx);
 
-  if (StellarSdk.rpc.Api.isSimulationError(simulated)) {
-    throw new Error(simulated.error ?? "Transaction simulation failed.");
+    if (StellarSdk.rpc.Api.isSimulationError(simulated)) {
+      throw new Error(simulated.error ?? "Transaction simulation failed.");
+    }
+
+    const preparedTx = StellarSdk.rpc
+      .assembleTransaction(
+        builtTx,
+        simulated as StellarSdk.rpc.Api.SimulateTransactionSuccessResponse,
+      )
+      .build();
+
+    const { signedTxXdr } = await signTransaction(preparedTx.toXDR(), {
+      networkPassphrase: NETWORK_PASSPHRASE,
+    });
+
+    const signedTx = StellarSdk.TransactionBuilder.fromXDR(
+      signedTxXdr,
+      NETWORK_PASSPHRASE,
+    ) as StellarSdk.Transaction;
+
+    const submissionResult = await server.sendTransaction(signedTx);
+
+    if (submissionResult.status === "ERROR") {
+      throw new Error(
+        stringifyError(
+          (submissionResult as { errorResult?: string; error?: string; message?: string }).errorResult ??
+            (submissionResult as { error?: string }).error ??
+            (submissionResult as { message?: string }).message ??
+            "Transaction submission failed.",
+        ),
+      );
+    }
+
+    let getResult = await server.getTransaction(submissionResult.hash);
+    while (getResult.status === "NOT_FOUND") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      getResult = await server.getTransaction(submissionResult.hash);
+    }
+
+    if (getResult.status === "FAILED") {
+      throw new Error("Transaction failed on-chain.");
+    }
+
+    return getResult as StellarSdk.rpc.Api.GetSuccessfulTransactionResponse;
+  };
+
+  try {
+    return await submitOnce(effectiveFeePerOperation);
+  } catch (error) {
+    if (!shouldRetryForFee(error)) {
+      throw error;
+    }
+
+    const retryFee = Math.min(
+      MAX_DYNAMIC_FEE_PER_OPERATION,
+      Math.max(effectiveFeePerOperation * FEE_RETRY_MULTIPLIER, effectiveFeePerOperation + 1),
+    );
+
+    if (retryFee <= effectiveFeePerOperation) {
+      throw error;
+    }
+
+    return await submitOnce(retryFee);
   }
-
-  const preparedTx = StellarSdk.rpc
-    .assembleTransaction(
-      builtTx,
-      simulated as StellarSdk.rpc.Api.SimulateTransactionSuccessResponse,
-    )
-    .build();
-
-  const { signedTxXdr } = await signTransaction(preparedTx.toXDR(), {
-    networkPassphrase: NETWORK_PASSPHRASE,
-  });
-
-  const signedTx = StellarSdk.TransactionBuilder.fromXDR(
-    signedTxXdr,
-    NETWORK_PASSPHRASE,
-  ) as StellarSdk.Transaction;
-
-  const submissionResult = await server.sendTransaction(signedTx);
-
-  if (submissionResult.status === "ERROR") {
-    throw new Error("Transaction submission failed.");
-  }
-
-  let getResult = await server.getTransaction(submissionResult.hash);
-  while (getResult.status === "NOT_FOUND") {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    getResult = await server.getTransaction(submissionResult.hash);
-  }
-
-  if (getResult.status === "FAILED") {
-    throw new Error("Transaction failed on-chain.");
-  }
-
-  return getResult as StellarSdk.rpc.Api.GetSuccessfulTransactionResponse;
 }
 
 async function invokeViewMethod(
@@ -559,6 +653,12 @@ export async function depositRevenue(campaignId: number, amount: bigint): Promis
   );
   try {
     const txResult = await buildAndSubmitTransaction(callerAddress, op);
+    appendWalletTransaction({
+      walletAddress: callerAddress,
+      campaignId,
+      action: "deposit_revenue",
+      txHash: txResult.txHash,
+    });
     return txResult.txHash;
   } catch (err) {
     throw new Error(parseContractError(err));

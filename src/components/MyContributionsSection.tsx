@@ -60,6 +60,8 @@ function getActionLabel(action: WalletTransactionAction): string {
       return "Refund claim";
     case "claim_revenue":
       return "Revenue claim";
+    case "deposit_revenue":
+      return "Revenue deposit";
     case "vote":
       return "Vote";
     default:
