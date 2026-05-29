@@ -65,4 +65,19 @@ describe("usePlatformFee", () => {
     expect(result.current.isLoading).toBe(true);
     expect(result.current.platformFeeBps).toBe(DEFAULT_PLATFORM_FEE_BPS);
   });
+
+  it("supports fee and net previews from platformFeeBps", async () => {
+    mockGetPlatformFee.mockResolvedValue(300);
+
+    const { result } = renderHook(() => usePlatformFee(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const totalRaised = 100;
+    const feeAmount = totalRaised * (result.current.platformFeeBps / 10_000);
+    const creatorNet = totalRaised - feeAmount;
+
+    expect(feeAmount).toBeCloseTo(3);
+    expect(creatorNet).toBeCloseTo(97);
+  });
 });
