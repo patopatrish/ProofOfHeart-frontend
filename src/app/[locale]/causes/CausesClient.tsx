@@ -12,6 +12,7 @@ import { useRouter } from '@/i18n/routing';
 import { cancelCampaign, claimRefund, voteOnCampaign, hasVoted } from '@/lib/contractClient';
 import { SORT_OPTIONS } from '@/lib/mockCauses';
 import { Campaign, Vote, CATEGORY_LABELS, CampaignStatus, Category } from '@/types';
+import { getAsyncActionErrorMessage, withActionTimeout } from '@/utils/asyncAction';
 import { parseContractError } from '@/utils/contractErrors';
 import { explorerTxUrl } from '@/utils/explorer';
 
@@ -121,7 +122,7 @@ function CausesContent() {
     }
     setIsVotingFor(campaignId);
     try {
-      const transactionHash = await voteOnCampaign(campaignId, userWalletAddress, voteType === 'upvote');
+      const transactionHash = await withActionTimeout(voteOnCampaign(campaignId, userWalletAddress, voteType === 'upvote'));
       const newVote: Vote = {
         causeId: String(campaignId),
         voter: userWalletAddress,
@@ -145,7 +146,7 @@ function CausesContent() {
         `Your vote has been cast successfully. <a href="${explorerTxUrl(transactionHash)}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;text-decoration:underline;">View on Explorer</a>`
       );
     } catch (error) {
-      showError(parseContractError(error));
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     } finally {
       setIsVotingFor(null);
     }
@@ -161,7 +162,7 @@ function CausesContent() {
       return;
     }
     try {
-      await cancelCampaign(campaignId);
+      await withActionTimeout(cancelCampaign(campaignId));
 
       // Optimistic update: mark campaign as cancelled immediately so the UI
       // reflects the new state without waiting for a re-fetch.
@@ -173,7 +174,7 @@ function CausesContent() {
 
       showSuccess('Campaign cancelled. Contributors can now claim full refunds.');
     } catch (error) {
-      showError(parseContractError(error));
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     }
   };
 
@@ -187,10 +188,10 @@ function CausesContent() {
       return;
     }
     try {
-      await claimRefund(campaignId, userWalletAddress);
+      await withActionTimeout(claimRefund(campaignId, userWalletAddress));
       showSuccess('Refund claimed successfully. Funds will appear in your wallet shortly.');
     } catch (error) {
-      showError(parseContractError(error));
+      showError(getAsyncActionErrorMessage(error, parseContractError));
     }
   };
 
