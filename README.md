@@ -147,6 +147,31 @@ To run the production container:
 docker run -p 3000:3000 proofofheart-frontend
 ```
 
+## 🛡 Error Reporting
+
+`src/components/ErrorBoundary.tsx` exposes an optional `onError` prop that receives a PII-safe error report (`name`, `message`, `stack`) whenever a React render error is caught.
+
+### Wiring Sentry (or another provider)
+
+1. Install the SDK: `npm install @sentry/nextjs`
+2. Follow the [Sentry Next.js setup guide](https://docs.sentry.io/platforms/javascript/guides/nextjs/) to create `sentry.client.config.ts`.
+3. Pass `onError` wherever you render `<ErrorBoundary>`:
+
+```tsx
+import * as Sentry from "@sentry/nextjs";
+import ErrorBoundary from "@/components/ErrorBoundary";
+
+<ErrorBoundary
+  onError={({ name, message, stack }) =>
+    Sentry.captureException(Object.assign(new Error(message), { name, stack }))
+  }
+>
+  {children}
+</ErrorBoundary>
+```
+
+Only `error.name`, `error.message`, and `error.stack` are forwarded — no user data or wallet addresses are included by default.
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
