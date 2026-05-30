@@ -76,7 +76,7 @@ export default function VotingComponent({
   const getVoteButtonClass = (voteType: "upvote" | "downvote") => {
     const isSelected = localVote === voteType;
     const base =
-      "flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 transform hover:motion-safe:scale-105";
+      "flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-200 transform hover:motion-safe:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 dark:focus-visible:ring-zinc-400 focus-visible:ring-offset-2";
     if (voteType === "upvote") {
       return isSelected
         ? `${base} bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-2 border-green-300 dark:border-green-700`
@@ -129,6 +129,7 @@ export default function VotingComponent({
         <button
           onClick={() => handleVote("upvote")}
           disabled={voteDisabled}
+          aria-label="Approve campaign"
           title={
             !userWalletAddress
               ? "Connect your wallet to vote"
@@ -155,6 +156,7 @@ export default function VotingComponent({
         <button
           onClick={() => handleVote("downvote")}
           disabled={voteDisabled}
+          aria-label="Reject campaign"
           title={
             !userWalletAddress
               ? "Connect your wallet to vote"
