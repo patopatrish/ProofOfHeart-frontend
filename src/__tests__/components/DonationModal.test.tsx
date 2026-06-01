@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { contribute } from "@/lib/contractClient";
 import DonationModal from "@/components/DonationModal";
 import { Category, type Campaign } from "@/types";
 
@@ -62,8 +63,6 @@ jest.mock("@/lib/analytics", () => ({
   trackContributionConfirmed: jest.fn(),
   trackContributionError: jest.fn(),
 }));
-
-import { contribute } from "@/lib/contractClient";
 
 const mockContribute = contribute as jest.MockedFunction<typeof contribute>;
 

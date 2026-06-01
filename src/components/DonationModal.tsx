@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { contribute } from "../lib/contractClient";
 import { getEstimatedContributeNetworkFeeXlm } from "../lib/networkFee";
-import { Campaign, xlmToStroops, formatStroopsAsXlm, calculateFundingPercentage, basisPointsToPercentage } from "../types";
+import { Campaign, xlmToStroops, formatStroopsAsXlm, basisPointsToPercentage } from "../types";
 import { useToast } from "./ToastProvider";
 import { useWallet } from "./WalletContext";
 import { usePlatformFee } from "../hooks/usePlatformFee";
