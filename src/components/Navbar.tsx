@@ -16,8 +16,13 @@ import { IS_MOCK_MODE } from "@/lib/runtimeEnv";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuToggleButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const {
     publicKey,
     isWalletConnected,
@@ -179,9 +184,15 @@ export default function Navbar() {
             onClick={toggleTheme}
             className="flex size-9 items-center justify-center rounded-full border border-black/10 bg-white text-zinc-950 hover:bg-black/5 dark:border-white/15 dark:bg-zinc-800 dark:text-white dark:hover:bg-white/10 transition-colors shadow-sm"
             aria-label="Toggle theme"
-            aria-pressed={theme === 'dark'}
+            aria-pressed={mounted && theme === 'dark'}
           >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            {!mounted ? (
+              <span className="size-[18px]" />
+            ) : theme === 'light' ? (
+              <Moon size={18} />
+            ) : (
+              <Sun size={18} />
+            )}
           </button>
 
           <div className="hidden md:flex items-center gap-2 ml-2">

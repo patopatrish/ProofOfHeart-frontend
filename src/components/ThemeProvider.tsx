@@ -13,38 +13,43 @@ interface ThemeContextType {
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('theme');
+      if (stored === 'light' || stored === 'dark') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
   const [mounted, setMounted] = useState(false);
-  const [hasExplicitChoice, setHasExplicitChoice] = useState(false);
+  const [hasExplicitChoice, setHasExplicitChoice] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('theme');
+      return stored === 'light' || stored === 'dark';
+    }
+    return false;
+  });
+
+  const useSafeLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme');
-
-    if (stored === 'light' || stored === 'dark') {
-      setThemeState(stored);
-      setHasExplicitChoice(true);
-    } else {
-      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(systemDark ? 'dark' : 'light');
-    }
-
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
-
+  useSafeLayoutEffect(() => {
     const root = window.document.documentElement;
     if (theme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
+  }, [theme]);
 
+  useEffect(() => {
     if (hasExplicitChoice) {
       localStorage.setItem('theme', theme);
     }
-  }, [theme, mounted, hasExplicitChoice]);
+  }, [theme, hasExplicitChoice]);
 
   const setTheme = (nextTheme: Theme) => {
     setThemeState(nextTheme);

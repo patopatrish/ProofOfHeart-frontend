@@ -1,9 +1,6 @@
 import { signTransaction, getAddress } from "@stellar/freighter-api";
 import * as StellarSdk from "@stellar/stellar-sdk";
-import { Campaign, Category, deriveStatus, CampaignStatus } from "../types";
-import { appendWalletTransaction } from "./transactionLog";
-import { parseContractError, getContractErrorCode, ContractError } from "../utils/contractErrors";
-import { assertProductionContractConfig } from "./runtimeEnv";
+import { captureTransactionError } from "./errorTracking";
 import {
   classifyRpcFailure,
   classifySimulationFailure,
@@ -11,6 +8,17 @@ import {
   recordObservabilityKind,
   recordObservabilitySuccess,
 } from "./observability";
+import { assertProductionContractConfig } from "./runtimeEnv";
+import { appendWalletTransaction } from "./transactionLog";
+import { Campaign, Category, deriveStatus, CampaignStatus } from "../types";
+import { parseContractError, getContractErrorCode, ContractError } from "../utils/contractErrors";
+import {
+  validateStellarAddress,
+  validateFundingGoal,
+  validateDuration,
+  validateRevenueShare,
+  validateAmount,
+} from "../utils/validators";
 
 // ---------------------------------------------------------------------------
 // Environment configuration

@@ -11,8 +11,9 @@ import CampaignStatusBadge from './CampaignStatusBadge';
 import CancelCampaignModal from './cancelCampaignModal';
 import DeadlineCountdown from './DeadlineCountdown';
 import FundingProgressBar from './FundingProgressBar';
-import VotingComponent from './VotingComponent';
 import { useToast } from './ToastProvider';
+import VotingComponent from './VotingComponent';
+import { formatAddress } from '@/lib/formatAddress';
 import { getAsyncActionErrorMessage, withActionTimeout } from '@/utils/asyncAction';
 import { parseContractError } from '@/utils/contractErrors';
 

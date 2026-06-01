@@ -23,6 +23,7 @@ interface FunnelEventData extends Record<string, unknown> {
   campaignId?: string;
   errorType?: string;
   timestamp?: number;
+  [key: string]: unknown;
 }
 
 /**
