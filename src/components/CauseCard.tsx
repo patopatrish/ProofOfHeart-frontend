@@ -14,6 +14,7 @@ import {
   calculateFundingPercentage,
   formatStroopsAsXlm,
 } from '../types';
+import Amount from './Amount';
 import AsyncButtonContent from './AsyncButtonContent';
 import CampaignStatusBadge from './CampaignStatusBadge';
 import CancelCampaignModal from './cancelCampaignModal';

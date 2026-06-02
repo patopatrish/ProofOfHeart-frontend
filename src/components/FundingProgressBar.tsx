@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useId } from "react";
 import { useLocale } from "next-intl";
 import { motion, useSpring, useTransform } from "framer-motion";
