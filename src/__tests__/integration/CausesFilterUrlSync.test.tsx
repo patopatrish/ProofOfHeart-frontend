@@ -28,7 +28,17 @@ const mockCampaigns = [
 ];
 
 jest.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations:
+    () => (key: string, values?: { label?: string; count?: number }) => {
+      if (key === "allCategories") return "All Categories";
+      if (key === "categoryChipAriaSelected") {
+        return `${values?.label}, ${values?.count} causes, selected`;
+      }
+      if (key === "categoryChipAriaUnselected") {
+        return `${values?.label}, ${values?.count} causes`;
+      }
+      return key;
+    },
 }));
 
 jest.mock("next/navigation", () => ({
@@ -87,8 +97,8 @@ describe("Causes filters URL sync", () => {
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
     render(<CausesClient />);
 
-    const [categorySelect, statusSelect, sortSelect] = screen.getAllByRole("combobox");
-    await user.selectOptions(categorySelect, "0");
+    const [statusSelect, sortSelect] = screen.getAllByRole("combobox");
+    await user.click(screen.getByRole("button", { name: "Learner, 1 causes" }));
     await user.selectOptions(statusSelect, "active");
     await user.selectOptions(sortSelect, "oldest");
     await user.type(screen.getByPlaceholderText("searchPlaceholder"), "science");
@@ -111,11 +121,26 @@ describe("Causes filters URL sync", () => {
     );
 
     render(<CausesClient />);
-    const [categorySelect, statusSelect, sortSelect] = screen.getAllByRole("combobox");
+    const [statusSelect, sortSelect] = screen.getAllByRole("combobox");
 
     expect(await screen.findByDisplayValue("astro")).toBeInTheDocument();
-    expect(categorySelect).toHaveValue("2");
+    expect(screen.getByRole("button", { name: "Educator, 0 causes, selected" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     expect(statusSelect).toHaveValue("funded");
     expect(sortSelect).toHaveValue("most_funded");
+  });
+
+  it("shows live category counts on filter chips", () => {
+    render(<CausesClient />);
+
+    expect(screen.getByRole("button", { name: "All Categories, 1 causes, selected" })).toHaveTextContent(
+      "1",
+    );
+    expect(screen.getByRole("button", { name: "Learner, 1 causes" })).toHaveTextContent("1");
+    expect(screen.getByRole("button", { name: "Educational Startup, 0 causes" })).toHaveTextContent(
+      "0",
+    );
   });
 });

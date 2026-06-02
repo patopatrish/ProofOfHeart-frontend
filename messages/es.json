@@ -223,6 +223,8 @@
     "labelSortBy": "Ordenar por",
     "all": "Todas",
     "allCategories": "Todas las Categorías",
+    "categoryChipAriaSelected": "{label}, {count} causas, seleccionada",
+    "categoryChipAriaUnselected": "{label}, {count} causas",
     "allStatuses": "Todos los Estados",
     "clearFilters": "Borrar filtros",
     "clearAllFilters": "Borrar todos los filtros",
