@@ -10,19 +10,23 @@ import CampaignActions from '@/components/CampaignActions';
 import AsyncButtonContent from '@/components/AsyncButtonContent';
 import CampaignStatusBadge from '@/components/CampaignStatusBadge';
 import DeadlineCountdown from '@/components/DeadlineCountdown';
-import DonationModal from '@/components/DonationModal';
+import dynamic from 'next/dynamic';
 import FundingProgressBar from '@/components/FundingProgressBar';
-import RevenueSharingPanel from '@/components/RevenueSharingPanel';
+
+const DonationModal = dynamic(() => import('@/components/DonationModal'), {
+  ssr: false,
+});
+
+const RevenueSharingPanel = dynamic(() => import('@/components/RevenueSharingPanel'), {
+  ssr: false,
+});
 import UpdatesSection from '@/components/UpdatesSection';
 import { useToast } from '@/components/ToastProvider';
 import VotingComponent from '@/components/VotingComponent';
 import { useWallet } from '@/components/WalletContext';
-import { useCampaign } from '@/hooks/useCampaign';
 import { useLiveCampaignFunding } from '@/hooks/useLiveCampaignFunding';
 import { useLiveVoteTallies } from '@/hooks/useLiveVoteTallies';
 import { usePlatformFee } from '@/hooks/usePlatformFee';
-import { useLiveCampaignFunding } from '@/hooks/useLiveCampaignFunding';
-import SafeMarkdown from '@/components/SafeMarkdown';
 import {
   voteOnCampaign,
   hasVoted,
@@ -34,10 +38,10 @@ import {
 } from "@/lib/contractClient";
 import { useTranslations, useLocale } from "next-intl";
 import { CauseDetailSkeleton } from "@/components/Skeleton";
-import { Campaign, Vote, CATEGORY_LABELS, formatStroopsAsXlm } from "@/types";
+import { Campaign, Vote, CATEGORY_LABELS, stroopsToXlm } from "@/types";
 import { parseContractError } from "@/utils/contractErrors";
 import { getAsyncActionErrorMessage, withActionTimeout } from "@/utils/asyncAction";
-import { trackViewCampaign, trackConnectWallet } from "@/lib/analytics";
+import { trackViewCampaign } from "@/lib/analytics";
 import { formatXlm, formatDate } from "@/lib/formatters";
 
 export default function CauseDetailClient({ id }: { id: string }) {
@@ -240,10 +244,8 @@ export default function CauseDetailClient({ id }: { id: string }) {
     );
   }
 
-  const raisedStr = formatStroopsAsXlm(campaign.amount_raised, { maximumFractionDigits: 7 });
-  const goalStr = formatStroopsAsXlm(campaign.funding_goal, { maximumFractionDigits: 7 });
-  const raised = parseFloat(raisedStr);
-  const goal = parseFloat(goalStr);
+  const raised = Number(stroopsToXlm(campaign.amount_raised));
+  const goal = Number(stroopsToXlm(campaign.funding_goal));
   const fundingPct = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
   const approvalRate =
     voteCounts.totalVotes > 0 ? Math.round((voteCounts.upvotes / voteCounts.totalVotes) * 100) : 0;
@@ -258,7 +260,7 @@ export default function CauseDetailClient({ id }: { id: string }) {
   const isRefundEligible =
     campaign.is_cancelled ||
     (now > campaign.deadline && campaign.amount_raised < campaign.funding_goal);
-  const refundableXlm = parseFloat(formatStroopsAsXlm(refundableAmount, { maximumFractionDigits: 7 })) || 0;
+
 
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
@@ -437,7 +439,7 @@ export default function CauseDetailClient({ id }: { id: string }) {
                     <p className="text-sm text-zinc-700 dark:text-zinc-300">
                       Your refundable contribution:{" "}
                       <span className="font-semibold">
-                        {formatXlm(parseFloat(refundableXlm), locale)} XLM
+                        {formatXlm(refundableXlm, locale)} XLM
                       </span>
                     </p>
                     <button
