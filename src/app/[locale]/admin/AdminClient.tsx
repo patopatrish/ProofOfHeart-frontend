@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   const [campaignToReject, setCampaignToReject] = useState<Campaign | null>(null);
 
   // Optimistic UI State
-  const [optimisticRemovedIds, setOptimisticRemovedIds] = useState<number[]>([]);
+  const [optimisticPendingIds, setOptimisticPendingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -156,9 +156,9 @@ export default function AdminDashboard() {
         !c.is_verified &&
         c.is_active &&
         !c.is_cancelled &&
-        !optimisticRemovedIds.includes(c.id),
+        !optimisticPendingIds.has(c.id),
     );
-  }, [campaigns, optimisticRemovedIds]);
+  }, [campaigns, optimisticPendingIds]);
 
   const totalRaised = useMemo(() => {
     return campaigns.reduce((sum, c) => sum + BigInt(c.amount_raised), BigInt(0));
