@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { getCampaign } from '@/lib/contractClient';
-import { CATEGORY_LABELS, formatStroopsAsXlm } from '@/types';
+import { CATEGORY_LABELS, stroopsToXlm } from '@/types';
 
 export const runtime = 'edge';
 export const revalidate = 300; // Cache for 5 minutes
@@ -11,22 +11,31 @@ export const size = {
 };
 export const contentType = 'image/png';
 
-export default async function Image({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function Image({ params }: { params: Promise<{ id: string; locale: string }> }) {
+  const { id, locale } = await params;
+  const safeLocale = locale === 'es' ? 'es' : 'en';
+
+  /** Truncate a string to maxLen chars, appending ellipsis if needed. */
+  function truncate(str: string, maxLen: number): string {
+    return str.length > maxLen ? str.slice(0, maxLen - 1) + '…' : str;
+  }
+
+  function fmtNumber(n: number): string {
+    return new Intl.NumberFormat(safeLocale, { maximumFractionDigits: 2 }).format(n);
+  }
 
   try {
     const campaign = await getCampaign(Number(id));
-    
+
     if (!campaign) {
       throw new Error('Campaign not found');
     }
-    
-    const raisedStr = formatStroopsAsXlm(campaign.amount_raised, { maximumFractionDigits: 7 });
-    const goalStr = formatStroopsAsXlm(campaign.funding_goal, { maximumFractionDigits: 7 });
-    const raised = parseFloat(raisedStr);
-    const goal = parseFloat(goalStr);
+
+    const raised = Number(stroopsToXlm(campaign.amount_raised));
+    const goal = Number(stroopsToXlm(campaign.funding_goal));
     const fundingPct = goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
     const categoryLabel = CATEGORY_LABELS[campaign.category] ?? 'Other';
+    const title = truncate(campaign.title || 'Untitled Campaign', 80);
 
     return new ImageResponse(
       (
@@ -92,14 +101,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                 lineHeight: 1.2,
                 margin: 0,
                 maxWidth: '1000px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
+                wordBreak: 'break-word',
               }}
             >
-              {campaign.title}
+              {title}
             </h1>
           </div>
 
@@ -136,7 +141,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                   color: '#18181b',
                 }}
               >
-                {raised.toLocaleString()} XLM
+                {fmtNumber(raised)} XLM
               </div>
             </div>
 
@@ -165,7 +170,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                   color: '#18181b',
                 }}
               >
-                {goal.toLocaleString()} XLM
+                {fmtNumber(goal)} XLM
               </div>
             </div>
 

@@ -56,6 +56,7 @@ describe("useLiveCampaignFunding", () => {
       campaign: makeCampaign(),
       isLoading: false,
       error: null,
+      notFound: false,
       refetch: jest.fn(),
     });
   });
@@ -89,6 +90,7 @@ describe("useLiveCampaignFunding", () => {
       campaign: makeCampaign({ amount_raised: BigInt(12_000_000) }),
       isLoading: false,
       error: null,
+      notFound: false,
       refetch: jest.fn(),
     });
     rerender();

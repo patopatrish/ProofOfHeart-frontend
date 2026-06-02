@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { contribute } from "@/lib/contractClient";
 import DonationModal from "@/components/DonationModal";
 import { Category, type Campaign } from "@/types";
 
@@ -26,6 +27,34 @@ jest.mock("@/hooks/usePlatformFee", () => ({
   }),
 }));
 
+jest.mock("next-intl", () => ({
+  useTranslations: () => (key: string, values?: Record<string, unknown>) => {
+    const map: Record<string, string> = {
+      title: "Fund This Cause",
+      confirmedTitle: "Donation Confirmed",
+      amountLabel: "Amount (XLM)",
+      percentFunded: `${values?.percent}% funded`,
+      afterDonation: `After your donation: ${values?.percent}% funded`,
+      goalReached: "Goal reached!",
+      contributionLine: "Contribution",
+      networkFeeLine: "Est. network fee",
+      totalLine: "Total from your wallet",
+      donate: "Donate",
+      donateAmount: `Donate ${values?.amount} XLM`,
+      platformFeeNote: `A platform fee of ${values?.feePercent} is deducted from funds when withdrawn by the creator. Your full donation goes toward the campaign total.`,
+      networkFeeNote: "Network fee note",
+      waitingSignature: "Waiting for Freighter signature…",
+      waitingConfirmation: "Waiting for ledger confirmation…",
+      submitting: "Submitting transaction to the network…",
+      donatedSuccess: `${values?.amount} XLM donated successfully`,
+      thankYou: "Thank you for supporting this cause.",
+      viewExplorer: "View on Stellar Explorer →",
+      close: "Close",
+    };
+    return map[key] ?? key;
+  },
+}));
+
 jest.mock("@/lib/analytics", () => ({
   trackClickContribute: jest.fn(),
   trackEnterAmount: jest.fn(),
@@ -34,8 +63,6 @@ jest.mock("@/lib/analytics", () => ({
   trackContributionConfirmed: jest.fn(),
   trackContributionError: jest.fn(),
 }));
-
-import { contribute } from "@/lib/contractClient";
 
 const mockContribute = contribute as jest.MockedFunction<typeof contribute>;
 
@@ -78,17 +105,17 @@ describe("DonationModal", () => {
   it("rejects zero amounts by disabling submit", () => {
     render(<DonationModal {...defaultProps} />);
 
-    const input = screen.getByLabelText("Amount (XLM)");
+    const input = screen.getByLabelText("amountLabel");
     fireEvent.change(input, { target: { value: "0" } });
 
-    expect(screen.getByRole("button", { name: /Donate/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /donate/i })).toBeDisabled();
   });
 
   it("rejects negative and non-numeric amounts", () => {
     render(<DonationModal {...defaultProps} />);
 
-    const input = screen.getByLabelText("Amount (XLM)");
-    const button = screen.getByRole("button", { name: /Donate/ });
+    const input = screen.getByLabelText("amountLabel");
+    const button = screen.getByRole("button", { name: /donate/i });
 
     fireEvent.change(input, { target: { value: "-5" } });
     expect(button).toBeDisabled();
@@ -113,9 +140,17 @@ describe("DonationModal", () => {
   it("renders the platform fee explanation", () => {
     render(<DonationModal {...defaultProps} />);
 
-    expect(
-      screen.getByText(/A platform fee of 3% is deducted from funds when withdrawn by the creator/),
-    ).toBeInTheDocument();
+    expect(screen.getByText("platformFeeNote")).toBeInTheDocument();
+  });
+
+  it("shows estimated network fee and total wallet cost when amount is entered", () => {
+    render(<DonationModal {...defaultProps} />);
+
+    fireEvent.change(screen.getByLabelText("Amount (XLM)"), { target: { value: "10" } });
+
+    expect(screen.getByText("Est. network fee")).toBeInTheDocument();
+    expect(screen.getByText("Total from your wallet")).toBeInTheDocument();
+    expect(screen.getByText(/10\.01\s*XLM/)).toBeInTheDocument();
   });
 
   it("calls contribute with amount converted to stroops", async () => {
@@ -125,8 +160,8 @@ describe("DonationModal", () => {
 
     render(<DonationModal {...defaultProps} />);
 
-    fireEvent.change(screen.getByLabelText("Amount (XLM)"), { target: { value: "10" } });
-    fireEvent.click(screen.getByRole("button", { name: /Donate 10 XLM/ }));
+    fireEvent.change(screen.getByLabelText("amountLabel"), { target: { value: "10" } });
+    fireEvent.click(screen.getByRole("button", { name: "donateWithAmount" }));
 
     await waitFor(() =>
       expect(mockContribute).toHaveBeenCalledWith(1, CONTRIBUTOR, BigInt(100_000_000), {
@@ -140,12 +175,12 @@ describe("DonationModal", () => {
 
     render(<DonationModal {...defaultProps} />);
 
-    fireEvent.change(screen.getByLabelText("Amount (XLM)"), { target: { value: "5" } });
-    fireEvent.click(screen.getByRole("button", { name: /Donate 5 XLM/ }));
+    fireEvent.change(screen.getByLabelText("amountLabel"), { target: { value: "5" } });
+    fireEvent.click(screen.getByRole("button", { name: "donateWithAmount" }));
 
     await waitFor(() => {
-      expect(screen.queryByRole("button", { name: /Donate/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /donate/i })).not.toBeInTheDocument();
     });
-    expect(screen.getByText(/Submitting transaction to the network/)).toBeInTheDocument();
+    expect(screen.getByText("submittingTransaction")).toBeInTheDocument();
   });
 });

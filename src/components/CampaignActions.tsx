@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { Campaign, basisPointsToPercentage, formatStroopsAsXlm, xlmToStroops } from "../types";
+import { useLocale } from "next-intl";
+import { Campaign, basisPointsToPercentage, xlmToStroops } from "../types";
+import { formatAmount } from "@/lib/formatters";
 import AsyncButtonContent from "./AsyncButtonContent";
 import { useToast } from "./ToastProvider";
 import { useWallet } from "./WalletContext";
@@ -36,6 +38,7 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
   const { admin } = useAdmin();
   const { contribution } = useContribution(campaign.id, publicKey);
   const { platformFeeBps } = usePlatformFee();
+  const locale = useLocale();
   const { showSuccess, showError, showWarning } = useToast();
   const { invoke, isPending } = useWriteGuard();
   const [txPhase, setTxPhase] = useState<TransactionLifecyclePhase | null>(null);
@@ -93,26 +96,6 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
     setShowRevenueInput(false);
   };
 
-  if (!isWalletConnected) {
-    return (
-      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-5 text-center">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-          Connect your wallet to interact with this campaign.
-        </p>
-        <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-          A platform fee of {basisPointsToPercentage(platformFeeBps)} is deducted from funds when
-          withdrawn by the creator.
-        </p>
-        <button
-          onClick={connectWallet}
-          className="w-full py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition-colors"
-        >
-          Connect Wallet to Contribute
-        </button>
-      </div>
-    );
-  }
-
   const isExpired = Math.floor(Date.now() / 1000) > campaign.deadline;
   const contributionDisabledReason = isCreator
     ? "Creators cannot contribute to their own campaign."
@@ -154,7 +137,37 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
         setTxPhase(null);
       }
     });
-  }, [contributionAmount, publicKey, contributionDisabledReason, campaign.id, invoke, showWarning, showSuccess, showError, onActionSuccess]);
+  }, [
+    contributionAmount,
+    publicKey,
+    contributionDisabledReason,
+    campaign.id,
+    invoke,
+    showWarning,
+    showSuccess,
+    showError,
+    onActionSuccess,
+  ]);
+
+  if (!isWalletConnected) {
+    return (
+      <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-5 text-center">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+          Connect your wallet to interact with this campaign.
+        </p>
+        <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+          A platform fee of {basisPointsToPercentage(platformFeeBps)} is deducted from funds when
+          withdrawn by the creator.
+        </p>
+        <button
+          onClick={connectWallet}
+          className="w-full py-3 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full transition-colors"
+        >
+          Connect Wallet to Contribute
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -314,7 +327,7 @@ export default function CampaignActions({ campaign, onActionSuccess }: CampaignA
           <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50 mb-1">
             Your Contribution
           </h3>
-          <p className="text-2xl font-bold text-blue-600 mb-4">{formatStroopsAsXlm(contribution)} XLM</p>
+          <p className="text-2xl font-bold text-blue-600 mb-4">{formatAmount(contribution, locale, { maximumFractionDigits: 2 })} XLM</p>
           <div className="flex flex-col gap-3">
             <button
               onClick={() =>
