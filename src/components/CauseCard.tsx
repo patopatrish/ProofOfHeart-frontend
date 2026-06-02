@@ -1,11 +1,19 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
-import { Campaign, Vote, CATEGORY_LABELS, calculateFundingPercentage, formatStroopsAsXlm } from '../types';
+import { memo, useState } from 'react';
+import { useLocale } from 'next-intl';
 import { formatAddress } from '@/lib/formatAddress';
 import { formatXlm, formatShortDate } from '@/lib/formatters';
-import { useLocale } from 'next-intl';
+import { getAsyncActionErrorMessage, withActionTimeout } from '@/utils/asyncAction';
+import { parseContractError } from '@/utils/contractErrors';
+import {
+  Campaign,
+  Vote,
+  CATEGORY_LABELS,
+  calculateFundingPercentage,
+  formatStroopsAsXlm,
+} from '../types';
 import AsyncButtonContent from './AsyncButtonContent';
 import CampaignStatusBadge from './CampaignStatusBadge';
 import CancelCampaignModal from './cancelCampaignModal';
@@ -13,9 +21,6 @@ import DeadlineCountdown from './DeadlineCountdown';
 import FundingProgressBar from './FundingProgressBar';
 import { useToast } from './ToastProvider';
 import VotingComponent from './VotingComponent';
-import { formatAddress } from '@/lib/formatAddress';
-import { getAsyncActionErrorMessage, withActionTimeout } from '@/utils/asyncAction';
-import { parseContractError } from '@/utils/contractErrors';
 
 interface CauseCardProps {
   campaign: Campaign;
@@ -32,8 +37,8 @@ interface CauseCardProps {
 
 const CATEGORY_ICONS: Record<string, string> = {
   environment: '🌱',
-  education:   '📚',
-  healthcare:  '🏥',
+  education: '📚',
+  healthcare: '🏥',
 };
 
 function formatDate(ts: number, locale: string) {
@@ -41,7 +46,7 @@ function formatDate(ts: number, locale: string) {
 }
 
 
-export default function CauseCard({
+function CauseCard({
   campaign,
   userWalletAddress,
   onVote,
@@ -61,9 +66,6 @@ export default function CauseCard({
   const { showError } = useToast();
 
   const progressPct = calculateFundingPercentage(campaign.amount_raised, campaign.funding_goal);
-
-  const raisedXlm = formatStroopsAsXlm(campaign.amount_raised, { maximumFractionDigits: 2 });
-  const goalXlm = formatStroopsAsXlm(campaign.funding_goal, { maximumFractionDigits: 2 });
 
   const isCreator =
     !!userWalletAddress && userWalletAddress === campaign.creator;
@@ -162,7 +164,7 @@ export default function CauseCard({
         {/* Funding progress */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
-            <span>{formatXlm(parseFloat(raisedXlm), locale)} XLM raised</span>
+            <span><Amount value={campaign.amount_raised} maximumFractionDigits={2} /> XLM raised</span>
             <span>{progressPct}%</span>
           </div>
           <div className="w-full bg-zinc-100 dark:bg-zinc-700 rounded-full h-1.5">
@@ -172,7 +174,7 @@ export default function CauseCard({
             />
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            Goal: {formatXlm(parseFloat(goalXlm), locale)} XLM
+            Goal: <Amount value={campaign.funding_goal} maximumFractionDigits={2} /> XLM
           </p>
         </div>
 
@@ -267,3 +269,30 @@ export default function CauseCard({
     </div>
   );
 }
+
+function causeCardPropsAreEqual(prev: CauseCardProps, next: CauseCardProps): boolean {
+  const prevCampaign = prev.campaign;
+  const nextCampaign = next.campaign;
+
+  return (
+    prev.userWalletAddress === next.userWalletAddress &&
+    prev.userVote === next.userVote &&
+    prev.upvotes === next.upvotes &&
+    prev.downvotes === next.downvotes &&
+    prev.totalVotes === next.totalVotes &&
+    prev.onVote === next.onVote &&
+    prev.onCancel === next.onCancel &&
+    prev.onClaimRefund === next.onClaimRefund &&
+    prev.onTagClick === next.onTagClick &&
+    prevCampaign.id === nextCampaign.id &&
+    prevCampaign.status === nextCampaign.status &&
+    prevCampaign.title === nextCampaign.title &&
+    prevCampaign.amount_raised === nextCampaign.amount_raised &&
+    prevCampaign.funding_goal === nextCampaign.funding_goal &&
+    prevCampaign.deadline === nextCampaign.deadline &&
+    prevCampaign.funds_withdrawn === nextCampaign.funds_withdrawn &&
+    prevCampaign.cover_image_url === nextCampaign.cover_image_url
+  );
+}
+
+export default memo(CauseCard, causeCardPropsAreEqual);
