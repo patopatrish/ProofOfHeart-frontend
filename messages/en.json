@@ -223,6 +223,8 @@
     "labelSortBy": "Sort by",
     "all": "All",
     "allCategories": "All Categories",
+    "categoryChipAriaSelected": "{label}, {count} causes, selected",
+    "categoryChipAriaUnselected": "{label}, {count} causes",
     "allStatuses": "All Statuses",
     "clearFilters": "Clear filters",
     "clearAllFilters": "Clear all filters",
