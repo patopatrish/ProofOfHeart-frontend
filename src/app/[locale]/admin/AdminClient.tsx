@@ -411,11 +411,11 @@ export default function AdminDashboard() {
             {t("subtitle")}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <div className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-5 py-3 shadow-sm">
+            <div className="bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-5 py-3 shadow-sm min-w-0 max-w-full">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest block mb-1">
                 {t("contractAdmin")}
               </span>
-              <span className="font-mono text-sm font-bold text-zinc-900 dark:text-zinc-100">
+              <span className="font-mono text-sm font-bold text-zinc-900 dark:text-zinc-100 break-all">
                 {adminAddress}
               </span>
             </div>

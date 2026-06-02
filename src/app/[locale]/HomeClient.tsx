@@ -24,7 +24,7 @@ export default function HomeClient() {
             <span>Community Driven Governance</span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-zinc-900 dark:text-zinc-50 mb-8 leading-[1.1] tracking-tight motion-safe:animate-in fade-in slide-in-from-bottom-6 duration-700">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-zinc-900 dark:text-zinc-50 mb-8 leading-[1.1] tracking-tight motion-safe:animate-in fade-in slide-in-from-bottom-6 duration-700">
             {t("heroTitle")}
           </h1>
 
@@ -32,10 +32,10 @@ export default function HomeClient() {
             {t("heroSubtitle")}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center motion-safe:animate-in fade-in slide-in-from-bottom-10 duration-1000">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-stretch sm:items-center motion-safe:animate-in fade-in slide-in-from-bottom-10 duration-1000">
             <Link
               href="/explore"
-              className="group flex items-center gap-2 px-10 py-4 bg-linear-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-2xl transition-all shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:motion-safe:-translate-y-1 active:translate-y-0"
+              className="group flex items-center justify-center gap-2 px-6 sm:px-10 py-4 bg-linear-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-2xl transition-all shadow-xl shadow-red-500/25 hover:shadow-red-500/40 hover:motion-safe:-translate-y-1 active:translate-y-0"
             >
               {t("exploreCauses")}
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -48,7 +48,7 @@ export default function HomeClient() {
                   connectWallet();
                 }
               }}
-              className="group flex items-center gap-2 px-10 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md hover:motion-safe:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="group flex items-center justify-center gap-2 px-6 sm:px-10 py-4 bg-white dark:bg-zinc-900 border-2 border-zinc-100 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 font-bold rounded-2xl transition-all shadow-sm hover:shadow-md hover:motion-safe:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading && !isWalletConnected ? "Connecting..." : t("startCampaign")}
               <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />

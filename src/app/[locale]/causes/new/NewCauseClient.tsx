@@ -377,7 +377,7 @@ export default function CreateCampaignPage() {
 
         {/* Wallet guard banner */}
         {!isWalletConnected && (
-          <div className="mb-6 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 flex items-center justify-between gap-4">
+          <div className="mb-6 rounded-xl border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <p className="text-amber-800 dark:text-amber-300 text-sm font-medium">
               {t('walletGuard')}
             </p>
@@ -385,7 +385,7 @@ export default function CreateCampaignPage() {
               type="button"
               onClick={connectWallet}
               disabled={walletLoading}
-              className="shrink-0 px-4 py-2 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              className="shrink-0 w-full sm:w-auto px-4 py-2 min-h-[44px] rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 disabled:opacity-50 transition-colors"
             >
               {walletLoading ? t('connecting') : t('connectWallet')}
             </button>

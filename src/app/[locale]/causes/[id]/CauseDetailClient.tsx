@@ -411,7 +411,7 @@ export default function CauseDetailClient({ id }: { id: string }) {
                   key={label}
                   className="bg-white dark:bg-zinc-800 rounded-xl p-4 border border-zinc-200 dark:border-zinc-700 text-center"
                 >
-                  <div className={`text-2xl font-bold ${cls}`}>{value}</div>
+                  <div className={`text-xl sm:text-2xl font-bold truncate ${cls}`}>{value}</div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{label}</div>
                 </div>
               ))}
