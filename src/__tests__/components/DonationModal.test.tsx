@@ -124,6 +124,19 @@ describe("DonationModal", () => {
     expect(button).toBeDisabled();
   });
 
+  it("associates amount validation errors with the input", () => {
+    render(<DonationModal {...defaultProps} />);
+
+    const input = screen.getByLabelText("Amount (XLM)");
+    fireEvent.change(input, { target: { value: "0" } });
+
+    const error = screen.getByText("Amount must be greater than zero.");
+    expect(error).toHaveAttribute("id", "donation-amount-error");
+    expect(error).toHaveAttribute("role", "alert");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).toHaveAttribute("aria-describedby", "donation-amount-error");
+  });
+
   it("renders the platform fee explanation", () => {
     render(<DonationModal {...defaultProps} />);
 

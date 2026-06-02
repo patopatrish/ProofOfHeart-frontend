@@ -356,7 +356,7 @@ function CausesContent() {
         {/* Search + filters bar */}
         <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 mb-6 space-y-3">
           {/* Search */}
-          <div className="relative">
+          <div className="relative" role="search">
             <svg
               className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400"
               fill="none"
@@ -372,16 +372,20 @@ function CausesContent() {
               />
             </svg>
             <input
-              type="text"
+              id="causes-search"
+              type="search"
               value={rawSearch}
               onChange={(e) => setRawSearch(e.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="w-full ps-9 pe-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              aria-label={t("searchPlaceholder")}
+              autoComplete="off"
+              className="w-full pl-9 pr-9 py-2 rounded-lg border border-zinc-200 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
             {rawSearch && (
               <button
                 onClick={() => setRawSearch("")}
-                className="absolute end-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
               >
                 ✕
               </button>
@@ -504,7 +508,11 @@ function CausesContent() {
         {/* Results */}
         {!isLoading && !error && (
           <>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 flex items-center gap-3">
+            <div
+              aria-live="polite"
+              aria-atomic="true"
+              className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 flex items-center gap-3"
+            >
               <span>
                 {t(filteredCampaigns.length === 1 ? "causesFound_one" : "causesFound_other", {
                   count: filteredCampaigns.length,
@@ -564,12 +572,22 @@ function CausesContent() {
               </>
             ) : (
               <div className="text-center py-20">
-                <div className="text-5xl mb-4">🔍</div>
+                <div className="text-5xl mb-4">
+                  {campaigns.length === 0 ? "📭" : debouncedSearch ? "🔍" : "🔎"}
+                </div>
                 <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 mb-2">
-                  {campaigns.length === 0 ? t("noCausesYet") : t("noCausesFound")}
+                  {campaigns.length === 0
+                    ? t("noCausesYet")
+                    : debouncedSearch
+                      ? t("noSearchResults")
+                      : t("noCausesFound")}
                 </h2>
                 <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                  {campaigns.length === 0 ? t("beFirstToSubmit") : t("tryDifferentKeyword")}
+                  {campaigns.length === 0
+                    ? t("beFirstToSubmit")
+                    : debouncedSearch
+                      ? t("tryDifferentSearch")
+                      : t("tryDifferentKeyword")}
                 </p>
                 {campaigns.length > 0 && (
                   <button

@@ -67,6 +67,7 @@ jobs:
       - name: Run tests with coverage
         run: >
           npm run test:coverage -- --ci --runInBand --runTestsByPath
+          src/__tests__/i18n/missingTranslations.test.ts
           src/__tests__/integration/AppPageComponents.test.tsx
           src/__tests__/integration/CausesFilterUrlSync.test.tsx
           src/__tests__/components/CauseCard.test.tsx

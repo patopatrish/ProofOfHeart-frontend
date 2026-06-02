@@ -56,6 +56,19 @@ const nextConfig: NextConfig = {
         destination: "/:locale/causes",
         permanent: true,
       },
+      // Redirect non-localized cause detail URLs to the canonical localized form.
+      // The next-intl middleware handles / and /(en|es)/:path* but bare /causes/:id
+      // falls outside its matcher, so these explicit 308s close the gap.
+      {
+        source: "/causes/:id",
+        destination: "/en/causes/:id",
+        permanent: true,
+      },
+      {
+        source: "/causes/:id/:path*",
+        destination: "/en/causes/:id/:path*",
+        permanent: true,
+      },
     ];
   },
   async headers() {

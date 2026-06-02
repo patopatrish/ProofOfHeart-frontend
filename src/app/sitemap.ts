@@ -3,8 +3,10 @@ import { MetadataRoute } from "next";
 const BASE_URL = "https://proofofheart.org";
 const LOCALES = ["en", "es"];
 
-// Static routes to include in the sitemap
-const STATIC_ROUTES = ["", "/causes", "/causes/new", "/explore", "/about", "/dashboard"];
+// Static routes to include in the sitemap.
+// All paths are relative — the sitemap builder prepends /${locale} for each locale.
+// Do NOT include non-localized bare paths here; canonical URLs are locale-prefixed.
+const STATIC_ROUTES = ["", "/causes", "/causes/new", "/about", "/dashboard"];
 
 async function getCampaignIds(): Promise<number[]> {
   try {

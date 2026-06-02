@@ -284,9 +284,22 @@ For contract-layer work (`src/lib/contractClient.ts`):
 For UI work:
 
 - Add/adjust component or integration tests under `src/__tests__/`.
-- Ensure localization parity when adding translation keys (`messages/en.json` and `messages/es.json`).
+- Ensure localization parity when adding translation keys.
 
-## 9) Opening Issues and PRs
+### 9) Internationalization (i18n) Parity
+
+We support English (`en`) and Spanish (`es`).
+- **Parity is mandatory**: Every key added to `messages/en.json` **must** also be added to `messages/es.json`.
+- **No Empty Values**: Translation values must not be empty strings.
+- **CI Enforcement**: The `src/__tests__/i18n/missingTranslations.test.ts` test runs in CI to ensure parity. If parity is broken, the build will fail.
+
+To check parity locally:
+```bash
+npm run test src/__tests__/i18n/missingTranslations.test.ts
+```
+
+### 10) Opening Issues and PRs
+
 
 - Search existing issues/PRs first to avoid duplicates.
 - Link related issues in your PR body (`Closes #123`).

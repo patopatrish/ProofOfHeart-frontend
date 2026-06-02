@@ -45,6 +45,9 @@
     "loading": "Loading contribution history...",
     "empty": "No contributions found for this wallet yet.",
     "contributed": "Contributed {amount} XLM",
+    "statusActive": "Active",
+    "statusRefundable": "Refundable",
+    "statusRevenueClaimable": "Revenue claimable",
     "openCampaign": "Open Campaign",
     "claimRefund": "Claim Refund",
     "claimRevenue": "Claim Revenue ({amount} XLM)",
@@ -229,8 +232,10 @@
     "processingVote": "Processing vote…",
     "noCausesYet": "No causes yet",
     "noCausesFound": "No causes found",
+    "noSearchResults": "No search results",
     "beFirstToSubmit": "Be the first to submit a cause for the community to vote on.",
     "tryDifferentKeyword": "Try a different keyword or clear the filters.",
+    "tryDifferentSearch": "Try different search terms or clear the filters to see all causes.",
     "tryAgain": "Try again",
     "loadMore": "Load more causes",
     "showingRange": "Showing {shown} of {total}"
@@ -399,6 +404,7 @@
     "votedDownvote": "You voted to reject this cause",
     "verifyWithVotes": "✓ Verify Campaign with Votes",
     "verifying": "Verifying..."
+  },
   "Observability": {
     "loading": "Loading observability metrics…",
     "metricsRequestFailed": "Metrics request failed ({status})",
@@ -416,5 +422,11 @@
     "noContractErrors": "No contract errors in the current window.",
     "recentEvents": "Recent events",
     "noRecentEvents": "No recent events recorded yet."
+  },
+  "CauseJsonLd": {
+    "donateActionName": "Support {title}",
+    "fundingGoalLabel": "Funding Goal",
+    "amountRaisedLabel": "Amount Raised",
+    "deadlineLabel": "Funding Deadline"
   }
 }

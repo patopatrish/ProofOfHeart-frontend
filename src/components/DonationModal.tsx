@@ -148,6 +148,11 @@ export default function DonationModal({ campaign, onClose, onSuccess }: Donation
   };
 
   const validation = validateAmount(amount);
+  const amountError =
+    error ||
+    (amount.trim() && !validation.valid
+      ? validation.error || "Please enter a valid amount."
+      : null);
   const amountNum = validation.amount || 0;
   const newRaised = raised + amountNum;
   const newPct = goal > 0 ? Math.min(100, Math.round((newRaised / goal) * 100)) : 0;
@@ -282,6 +287,8 @@ export default function DonationModal({ campaign, onClose, onSuccess }: Donation
                     min="0.0000001"
                     step="any"
                     value={amount}
+                    aria-describedby={amountError ? "donation-amount-error" : undefined}
+                    aria-invalid={amountError ? "true" : "false"}
                     onChange={(e) => {
                       setAmount(e.target.value);
                       setError(null);

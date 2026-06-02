@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { useEffect, useRef, useState } from 'react';
 import { Bell, ExternalLink } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';

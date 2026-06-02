@@ -1,16 +1,17 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useContributions } from "../hooks/useContributions";
 import { claimRefund, claimRevenue } from "../lib/contractClient";
-import { getStellarExplorerTxUrl } from "../lib/stellarExplorer";
-import { CampaignStatus, formatStroopsAsXlm } from "../types";
+import { explorerTxUrl } from "../utils/explorer";
+import { formatStroopsAsXlm } from "../types";
 import { useToast } from "./ToastProvider";
 import { parseContractError } from "../utils/contractErrors";
 import type { WalletTransactionAction } from "../lib/transactionLog";
 import { type TransactionLifecyclePhase } from "../lib/contractClient";
+import type { ContributionHistoryItem } from "../hooks/useContributions";
 
 interface MyContributionsSectionProps {
   walletAddress: string;
@@ -20,24 +21,38 @@ function formatXlmAmount(value: bigint): string {
   return formatStroopsAsXlm(value, { maximumFractionDigits: 7 });
 }
 
-function getStatusClasses(status: CampaignStatus): string {
+type ContributionDisplayStatus = "active" | "refundable" | "revenue-claimable";
+
+function getContributionDisplayStatus(item: ContributionHistoryItem): ContributionDisplayStatus {
+  if (item.canClaimRefund) return "refundable";
+  if (item.canClaimRevenue) return "revenue-claimable";
+  return "active";
+}
+
+function getStatusLabelKey(status: ContributionDisplayStatus): string {
   switch (status) {
-    case "active":
-      return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
-    case "funded":
-      return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
-    case "failed":
-      return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
-    case "cancelled":
-      return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
+    case "refundable":
+      return "statusRefundable";
+    case "revenue-claimable":
+      return "statusRevenueClaimable";
     default:
-      return "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
+      return "statusActive";
+  }
+}
+
+function getStatusClasses(status: ContributionDisplayStatus): string {
+  switch (status) {
+    case "refundable":
+      return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
+    case "revenue-claimable":
+      return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300";
+    default:
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
   }
 }
 
 export default function MyContributionsSection({ walletAddress }: MyContributionsSectionProps) {
   const t = useTranslations("MyContributions");
-  const tStatus = useTranslations("Status");
   const { showError, showSuccess } = useToast();
   const [pendingCampaignId, setPendingCampaignId] = useState<number | null>(null);
   const [pendingAction, setPendingAction] = useState<"refund" | "revenue" | null>(null);
@@ -137,6 +152,7 @@ export default function MyContributionsSection({ walletAddress }: MyContribution
         <ul className="space-y-3">
           {contributions.map((item) => {
             const isPending = pendingCampaignId === item.campaign.id;
+            const displayStatus = getContributionDisplayStatus(item);
             const contributionTransactions = item.transactions.filter(
               (entry) => entry.action === "contribute",
             );
@@ -155,9 +171,9 @@ export default function MyContributionsSection({ walletAddress }: MyContribution
                     </p>
                   </div>
                   <span
-                    className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(item.status)}`}
+                    className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(displayStatus)}`}
                   >
-                    {tStatus(item.status)}
+                    {t(getStatusLabelKey(displayStatus))}
                   </span>
                 </div>
 
@@ -200,7 +216,7 @@ export default function MyContributionsSection({ walletAddress }: MyContribution
                       <div key={entry.txHash} className="flex items-center gap-2">
                         <span>{t("contributionTx")}</span>
                         <a
-                          href={getStellarExplorerTxUrl(entry.txHash)}
+                          href={explorerTxUrl(entry.txHash)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="font-mono text-blue-600 hover:underline dark:text-blue-400"
@@ -226,7 +242,7 @@ export default function MyContributionsSection({ walletAddress }: MyContribution
                           >
                             <span>{getActionLabel(entry.action)}:</span>
                             <a
-                              href={getStellarExplorerTxUrl(entry.txHash)}
+                              href={explorerTxUrl(entry.txHash)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="font-mono text-blue-600 hover:underline dark:text-blue-400"
