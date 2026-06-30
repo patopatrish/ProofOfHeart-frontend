@@ -11,7 +11,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useRe
 import { useToast } from "./ToastProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { IS_MOCK_MODE } from "@/lib/runtimeEnv";
-import InstallFreighterModal from './InstallFreighterModal';
+import InstallFreighterModal from "./InstallFreighterModal";
 
 interface WalletContextType {
   publicKey: string | null;
@@ -44,7 +44,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (IS_MOCK_MODE) {
-      const storedKey = typeof window !== "undefined" ? localStorage.getItem("stellar_wallet_public_key") : null;
+      const storedKey =
+        typeof window !== "undefined" ? localStorage.getItem("stellar_wallet_public_key") : null;
       if (storedKey) {
         setPublicKey(storedKey);
         setIsWalletConnected(true);
@@ -69,7 +70,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
   const checkWalletConnection = async () => {
     if (IS_MOCK_MODE) {
-      const storedKey = typeof window !== "undefined" ? localStorage.getItem("stellar_wallet_public_key") : null;
+      const storedKey =
+        typeof window !== "undefined" ? localStorage.getItem("stellar_wallet_public_key") : null;
       if (storedKey) {
         setPublicKey(storedKey);
         setIsWalletConnected(true);

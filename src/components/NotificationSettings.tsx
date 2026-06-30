@@ -30,9 +30,7 @@ export default function NotificationSettings() {
     () => (publicKey ? getNotificationPreferences(publicKey) : null),
     [publicKey],
   );
-  const [localPrefs, setLocalPrefs] = useState<NotificationPreferences | null>(
-    null,
-  );
+  const [localPrefs, setLocalPrefs] = useState<NotificationPreferences | null>(null);
 
   const prefs = localPrefs ?? storedPrefs;
 

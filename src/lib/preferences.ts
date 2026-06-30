@@ -14,14 +14,10 @@ const DEFAULTS: NotificationPreferences = {
   revenueDeposited: true,
 };
 
-export function getNotificationPreferences(
-  walletAddress: string,
-): NotificationPreferences {
+export function getNotificationPreferences(walletAddress: string): NotificationPreferences {
   if (typeof window === "undefined") return { ...DEFAULTS };
   try {
-    const raw = localStorage.getItem(
-      `${STORAGE_KEY_PREFIX}${walletAddress.toLowerCase()}`,
-    );
+    const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${walletAddress.toLowerCase()}`);
     if (raw) {
       const parsed = JSON.parse(raw);
       return { ...DEFAULTS, ...parsed };

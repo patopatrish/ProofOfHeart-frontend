@@ -9,11 +9,9 @@ interface InstallFreighterModalProps {
 }
 
 function detectBrowser(): { name: string; supported: boolean } {
-  if (typeof navigator === "undefined")
-    return { name: "Unknown", supported: false };
+  if (typeof navigator === "undefined") return { name: "Unknown", supported: false };
   const ua = navigator.userAgent.toLowerCase();
-  if (ua.includes("chrome") && !ua.includes("edg"))
-    return { name: "Chrome", supported: true };
+  if (ua.includes("chrome") && !ua.includes("edg")) return { name: "Chrome", supported: true };
   if (ua.includes("edg")) return { name: "Edge", supported: true };
   if (ua.includes("firefox")) return { name: "Firefox", supported: true };
   if (ua.includes("safari")) return { name: "Safari", supported: false };
@@ -53,14 +51,13 @@ export default function InstallFreighterModal({
           </h2>
 
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            This app requires the Freighter browser extension to interact with
-            the Stellar network.
+            This app requires the Freighter browser extension to interact with the Stellar network.
           </p>
 
           {!browser.supported && browser.name && (
             <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
-              Freighter does not support <strong>{browser.name}</strong>. Please
-              use Chrome, Edge, or Firefox.
+              Freighter does not support <strong>{browser.name}</strong>. Please use Chrome, Edge,
+              or Firefox.
             </div>
           )}
 

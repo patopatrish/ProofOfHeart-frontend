@@ -17,10 +17,7 @@ type CampaignAction =
   | { type: "fetch_not_found" }
   | { type: "fetch_error"; error: string };
 
-function campaignReducer(
-  state: CampaignState,
-  action: CampaignAction,
-): CampaignState {
+function campaignReducer(state: CampaignState, action: CampaignAction): CampaignState {
   switch (action.type) {
     case "fetch_start":
       return { campaign: null, isLoading: true, error: null, notFound: false };
@@ -82,8 +79,7 @@ export function useCampaign(id: number): UseCampaignResult {
         if (!cancelled)
           dispatch({
             type: "fetch_error",
-            error:
-              err instanceof Error ? err.message : "Failed to load campaign.",
+            error: err instanceof Error ? err.message : "Failed to load campaign.",
           });
       });
 

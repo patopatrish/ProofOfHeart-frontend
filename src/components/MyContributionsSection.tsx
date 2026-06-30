@@ -53,9 +53,7 @@ function getStatusClasses(status: string): string {
   }
 }
 
-function getActionLabel(
-  action: string,
-): string {
+function getActionLabel(action: string): string {
   switch (action) {
     case "contribute":
       return "Contribution";
@@ -74,31 +72,21 @@ function claimKey(campaignId: number, type: "refund" | "revenue"): ClaimKey {
   return `${campaignId}-${type}`;
 }
 
-export default function MyContributionsSection({
-  walletAddress,
-}: MyContributionsSectionProps) {
+export default function MyContributionsSection({ walletAddress }: MyContributionsSectionProps) {
   const { showError, showSuccess, showWarning } = useToast();
-  const [pendingCampaignId, setPendingCampaignId] = useState<number | null>(
-    null,
-  );
-  const [claimStatuses, setClaimStatuses] = useState<
-    Map<ClaimKey, ClaimStatus>
-  >(new Map());
+  const [pendingCampaignId, setPendingCampaignId] = useState<number | null>(null);
+  const [claimStatuses, setClaimStatuses] = useState<Map<ClaimKey, ClaimStatus>>(new Map());
   const [isBatchClaiming, setIsBatchClaiming] = useState(false);
   const { contributions, isLoading, isRefreshing, error, refetch } =
     useContributions(walletAddress);
 
   const totalContributed = useMemo(
-    () =>
-      contributions.reduce((sum, item) => sum + item.contribution, BigInt(0)),
+    () => contributions.reduce((sum, item) => sum + item.contribution, BigInt(0)),
     [contributions],
   );
 
   const claimableCount = useMemo(
-    () =>
-      contributions.filter(
-        (item) => item.canClaimRefund || item.canClaimRevenue,
-      ).length,
+    () => contributions.filter((item) => item.canClaimRefund || item.canClaimRevenue).length,
     [contributions],
   );
 
@@ -140,10 +128,8 @@ export default function MyContributionsSection({
     setIsBatchClaiming(true);
     const statusMap = new Map<ClaimKey, ClaimStatus>();
     contributions.forEach((item) => {
-      if (item.canClaimRefund)
-        statusMap.set(claimKey(item.campaign.id, "refund"), "idle");
-      if (item.canClaimRevenue)
-        statusMap.set(claimKey(item.campaign.id, "revenue"), "idle");
+      if (item.canClaimRefund) statusMap.set(claimKey(item.campaign.id, "refund"), "idle");
+      if (item.canClaimRevenue) statusMap.set(claimKey(item.campaign.id, "revenue"), "idle");
     });
     setClaimStatuses(statusMap);
 
@@ -162,9 +148,7 @@ export default function MyContributionsSection({
         } catch (err) {
           markClaimStatus(key, "failed");
           failed++;
-          errors.push(
-            `Refund for "${item.campaign.title}": ${parseContractError(err)}`,
-          );
+          errors.push(`Refund for "${item.campaign.title}": ${parseContractError(err)}`);
         }
       }
       if (item.canClaimRevenue) {
@@ -177,9 +161,7 @@ export default function MyContributionsSection({
         } catch (err) {
           markClaimStatus(key, "failed");
           failed++;
-          errors.push(
-            `Revenue for "${item.campaign.title}": ${parseContractError(err)}`,
-          );
+          errors.push(`Revenue for "${item.campaign.title}": ${parseContractError(err)}`);
         }
       }
     }
@@ -200,10 +182,7 @@ export default function MyContributionsSection({
     refetch();
   };
 
-  const isClaiming = (
-    itemId: number,
-    type: "refund" | "revenue",
-  ): ClaimStatus => {
+  const isClaiming = (itemId: number, type: "refund" | "revenue"): ClaimStatus => {
     return claimStatuses.get(claimKey(itemId, type)) ?? "idle";
   };
 
@@ -218,9 +197,7 @@ export default function MyContributionsSection({
               disabled={isBatchClaiming}
               className="rounded-full bg-indigo-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-zinc-400"
             >
-              {isBatchClaiming
-                ? "Claiming all..."
-                : `Claim All (${claimableCount})`}
+              {isBatchClaiming ? "Claiming all..." : `Claim All (${claimableCount})`}
             </button>
           )}
           <div className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -232,9 +209,7 @@ export default function MyContributionsSection({
       </div>
 
       {isLoading ? (
-        <p className="text-zinc-500 dark:text-zinc-400">
-          Loading contribution history...
-        </p>
+        <p className="text-zinc-500 dark:text-zinc-400">Loading contribution history...</p>
       ) : error ? (
         <div className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
           {error}
@@ -246,11 +221,8 @@ export default function MyContributionsSection({
       ) : (
         <ul className="space-y-3">
           {contributions.map((item) => {
-            const isPending =
-              pendingCampaignId === item.campaign.id && !isBatchClaiming;
-            const refundStatus = isBatchClaiming
-              ? isClaiming(item.campaign.id, "refund")
-              : "idle";
+            const isPending = pendingCampaignId === item.campaign.id && !isBatchClaiming;
+            const refundStatus = isBatchClaiming ? isClaiming(item.campaign.id, "refund") : "idle";
             const revenueStatus = isBatchClaiming
               ? isClaiming(item.campaign.id, "revenue")
               : "idle";
@@ -343,10 +315,7 @@ export default function MyContributionsSection({
                 <div className="space-y-2 text-xs text-zinc-500 dark:text-zinc-400">
                   {contributionTransactions.length > 0 ? (
                     contributionTransactions.map((entry) => (
-                      <div
-                        key={entry.txHash}
-                        className="flex items-center gap-2"
-                      >
+                      <div key={entry.txHash} className="flex items-center gap-2">
                         <span>Contribution tx:</span>
                         <a
                           href={getStellarExplorerTxUrl(entry.txHash)}
@@ -360,9 +329,7 @@ export default function MyContributionsSection({
                       </div>
                     ))
                   ) : (
-                    <span>
-                      No contribution transaction recorded on this device yet.
-                    </span>
+                    <span>No contribution transaction recorded on this device yet.</span>
                   )}
 
                   {item.transactions.length > 0 && (
